@@ -8,6 +8,7 @@ from typing import *
 
 
 def main():
+    x = False
     f = sys.argv[1]
     reservations = list()
     with open(f, "r") as file:
@@ -21,44 +22,58 @@ def main():
                 or line[16] == ""
                 or int(line[16]) > 24
             ):
+                # print(line[16])
                 continue
-            reservations.append(line)
-    fmt_res = list()
+            else:
+                resv = list()
+                # print(line)
+                for item in line:
+                    if item == "":
+                        continue
+                    if item.isnumeric():
+                        # print(item)
+                        if int(item) > 24:
+                            # print(item)
+                            continue
 
-    # TODO: fix the error in this code, it emits a "list of lists of lists"
-    for res in reservations:
-        resv = list()
-        for item in res:
-            if item == "":
-                continue
-            if item.isnumeric():
-                if int(item) > 24:
-                    continue
-            resv.append(
-                ", ".join(
-                    item.replace("<i>", "")
-                    .replace("</i>", "")
-                    .replace("<hr>", ": ")
-                    .replace("&#39;", "'")
-                    .replace("#1I", "#1")
-                    .replace("#2I", "#2")
-                    .split("<br>")
-                )
-            )
-        fmt_res.append(resv)
+                    resv.append(
+                        ", ".join(
+                            item.replace("<i>", "")
+                            .replace("</i>", "")
+                            .replace("<hr>", ": ")
+                            .replace("&#39;", "'")
+                            .replace("#1I", "#1")
+                            .replace("#2I", "#2")
+                            .split("<br>")
+                        )
+                    )
+                print(resv)
+                print(len(resv))
+                rsv = list()
+                rsv.append(resv[1])
+                rsv.append(resv[0])
+                rsv.append(" ".join([resv[2], resv[3]]))
+                rsv.append(resv[6])
+                rsv.append(resv[7])
+                rsv.append(resv[8])
+                for _ in resv:
+                    print(f"{_}")
+                # error here is that the hours before teh play time is being chopped elsewhere
+                rsv.append(resv[9])
+                reservations.append(rsv)
 
-    reservations.clear()
+    #     fmt_res = list()
 
-    for line in fmt_res:
-        rsv = list()
-        rsv.append(line[1])
-        rsv.append(line[0])
-        rsv.append(" ".join([line[2], line[3]]))
-        rsv.append(line[6])
-        rsv.append(line[7])
-        rsv.append(line[8])
-        rsv.append(line[9])
-        reservations.append(rsv)
+    # for line in reservations:
+    #     rsv = list()
+    #     rsv.append(line[1])
+    #     rsv.append(line[0])
+    #     rsv.append(" ".join([line[2], line[3]]))
+    #     rsv.append(line[6])
+    #     rsv.append(line[7])
+    #     rsv.append(line[8])
+    #     rsv.append(line[9])
+    #     fmt_res.append(rsv)
 
     day = datetime.timedelta(seconds=86400)
     problem_rsvs = list()
@@ -95,6 +110,17 @@ def jays_pretty_print(
     data: list[list[str]],
     output: Callable[[str], Any] = print,
 ):
+
+    """
+    #Sample Code:
+    # jays_pretty_print(
+    #     header=["title", "author", "year"],
+    #     data=[
+    #         ["aasfasdfasdfadfasfdas", "bfdsf", "c"],
+    #         ["dss", "edd", "f"],
+    #     ],
+    # )
+    """
 
     assert isinstance(data, list)
     assert len(data), "no items in data"
@@ -135,38 +161,6 @@ def jays_pretty_print(
         output(" | ".join(item.ljust(width) for width, item in zip(widths, line)))
 
 
-# def printKey():
-
-#     for item in items:
-#         # len = 0
-#         # for i in range(12):
-#         #     if len(item)
-#         #     short += 1
-#         print(f"{item}\t", end="") if len(item) % 8 > 2 else print(
-#             f"{item}      \t", end=""
-#         )
-#     print()
-
-"""
-def prettyprint(res):
-    for i in range(len(res)):
-        if res[i] == "":
-            continue
-        if i != len(res) - 1:
-            try:
-                int(res[i])
-                continue
-            except Exception as e:
-                # print(e)
-                pass
-
-        print(f"{res[i]},       \t", end="") if len(res[i]) % 8 > 2 else print(
-            f"{res[i]},\t", end=""
-        )
-
-    print("")
-"""
-
 # requested output:
 # filter out anything cancelled 24 hours before or more
 # for reservations cancelled  with less than 24 hours:
@@ -176,11 +170,4 @@ def prettyprint(res):
 
 
 if __name__ == "__main__":
-    # jays_pretty_print(
-    #     header=["title", "author", "year"],
-    #     data=[
-    #         ["aasfasdfasdfadfasfdas", "bfdsf", "c"],
-    #         ["dss", "edd", "f"],
-    #     ],
-    # )
     main()
