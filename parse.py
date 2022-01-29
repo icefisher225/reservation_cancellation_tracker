@@ -1,14 +1,37 @@
 from __future__ import annotations  # make typehints vanish at runtime
-import math, datetime, time, typing
-import sys
-
+import datetime, sys
 from typing import *
+
+from platformdirs import user_cache_dir
 
 # for python 3.10 and up
 
 
+class Entry:
+    def __init__(
+        self,
+        *,
+        creation_time="",
+        deletion_time="",
+        play_start_time="",
+        court="",
+        players="",
+        booking_user="",
+        hours_before_play="",
+    ):
+        self.creation_time = creation_time
+        self.deletion_time = deletion_time
+        res_time = datetime.datetime.strptime(self.creation_time, "%m/%d/%y %I:%M %p")
+        play_time = datetime.datetime.strptime(self.deletion_time, "%m/%d/%y %I:%M %p")
+        self.time_delta = play_time - res_time
+        self.play_start_time = play_start_time
+        self.court = court
+        self.players = players
+        self.booking_user = booking_user
+        self.hours_before_play = hours_before_play
+
+
 def main():
-    x = False
     f = sys.argv[1]
     reservations = list()
     with open(f, "r") as file:
@@ -22,18 +45,14 @@ def main():
                 or line[16] == ""
                 or int(line[16]) > 24
             ):
-                # print(line[16])
                 continue
             else:
                 resv = list()
-                # print(line)
                 for item in line:
                     if item == "":
                         continue
                     if item.isnumeric():
-                        # print(item)
                         if int(item) > 24:
-                            # print(item)
                             continue
 
                     resv.append(
@@ -47,33 +66,27 @@ def main():
                             .split("<br>")
                         )
                     )
-                print(resv)
-                print(len(resv))
                 rsv = list()
                 rsv.append(resv[1])
                 rsv.append(resv[0])
+
+                res_time = datetime.datetime.strptime(resv[1], "%m/%d/%y %I:%M %p")
+                play_time = datetime.datetime.strptime(
+                    " ".join([resv[2], resv[3]]), "%m/%d/%y %I:%M %p"
+                )
+                time_delta = play_time - res_time
+                # print(time_delta)
+                rsv.append(str(time_delta))
+                # time delta needs to go here
                 rsv.append(" ".join([resv[2], resv[3]]))
                 rsv.append(resv[6])
                 rsv.append(resv[7])
                 rsv.append(resv[8])
-                for _ in resv:
-                    print(f"{_}")
-                # error here is that the hours before teh play time is being chopped elsewhere
                 rsv.append(resv[9])
                 reservations.append(rsv)
 
-    #     fmt_res = list()
-
-    # for line in reservations:
-    #     rsv = list()
-    #     rsv.append(line[1])
-    #     rsv.append(line[0])
-    #     rsv.append(" ".join([line[2], line[3]]))
-    #     rsv.append(line[6])
-    #     rsv.append(line[7])
-    #     rsv.append(line[8])
-    #     rsv.append(line[9])
-    #     fmt_res.append(rsv)
+    for item in reservations[0]:
+        print(type(item))
 
     day = datetime.timedelta(seconds=86400)
     problem_rsvs = list()
@@ -81,16 +94,20 @@ def main():
 
     for item in reservations:
         res_time = datetime.datetime.strptime(item[0], "%m/%d/%y %I:%M %p")
-        play_time = datetime.datetime.strptime(item[2], "%m/%d/%y %I:%M %p")
-        # print(f"{play_time=}\t{res_time=}\t{play_time-res_time=}")
-        if play_time - res_time > day:
+        print(item)
+        play_time = datetime.datetime.strptime(item[3], "%m/%d/%y %I:%M %p")
+        time_delta = play_time - res_time
+        print(time_delta)
+        print(item[2])
+        if time_delta > day:
             problem_rsvs.append(item)
         else:
             possible_problem_rsvs.append(item)
 
     keyItems = [
         "Reservation Creation Time",
-        "Deleted Time",
+        "Reservation Deletion Time",
+        "Reservation Time Delta",
         "Play Start Time",
         "Court",
         "Players/Machines",
