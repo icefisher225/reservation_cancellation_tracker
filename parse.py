@@ -1,8 +1,8 @@
 from __future__ import annotations  # make typehints vanish at runtime
 import datetime, sys
 from typing import *
-
 from platformdirs import user_cache_dir
+
 
 # for python 3.10 and up
 
@@ -17,7 +17,8 @@ class Entry:
         court="",
         players="",
         booking_user="",
-        hours_before_play="",
+        hours_deleted_before_play="",
+        empty=False,
     ):
         self.creation_time = creation_time
         self.deletion_time = deletion_time
@@ -28,7 +29,88 @@ class Entry:
         self.court = court
         self.players = players
         self.booking_user = booking_user
-        self.hours_before_play = hours_before_play
+        self.hours_deleted_before_play = hours_deleted_before_play
+        self.empty = empty
+
+    def prettyprint(self):
+        return [
+            self.creation_time,
+            self.deletion_time,
+            self.time_delta,
+            self.play_start_time,
+            self.court,
+            self.players,
+            self.booking_user,
+            self.hours_deleted_before_play,
+        ]
+
+
+def output_format():
+    return [
+        "Reservation Creation Time",
+        "Reservation Deletion Time",
+        "Reservation Time Delta",
+        "Play Start Time",
+        "Court",
+        "Players/Machines",
+        "Booking User",
+        "Hours Deleted Before Play Time",
+    ]
+
+def get_time(st):
+    """
+    :st: A string to be converted to a date/time
+    :return: A datetime object of the date/time
+    """
+    return datetime.datetime.strptime(st, "%m/%d/%y %I:%M %p")
+
+
+def parse_line(line):
+    """
+    :line -> str:      Line from CSV
+    :return -> Entry:  Entry contaning either the line's information or the empty tag
+    """
+    line = line.strip().replace('"', "").split(",")
+    if (
+        line[8] != "Indoor"
+        or line[1] != ""
+        or line[3] != ""
+        or line[16] == ""
+        or int(line[16]) > 24
+    ):
+        return Entry(empty=True)
+    else:
+        resv = list()
+        for item in line:
+            if item == "":
+                # Checks and removes empty fields from the line. Could cause problems...
+                # TODO: Replace this entire chunk of code with one that parses the first line of the CSV and determines what needs to go where based on that
+                continue
+            if item.isnumeric():
+                if int(item) > 24:
+                    # check if reservation was deleted more than 24 hours in advance at the same time as removing all the irrelevant numeric fields
+                    # yes, this is cheating and will likely cause issues in the future.
+                    # TODO: fix this by creating a proper genericized CSV parser
+                    continue
+            resv.append()
+        return Entry(
+            creation_time=resv[1],
+            deletion_time=resv[0],
+            play_start_time=" ".join([resv[2], resv[3]]),
+            court=resv[6],
+            players=", ".join(
+                resv[7]
+                .replace("<i>", "")
+                .replace("</i>", "")
+                .replace("<hr>", ": ")
+                .replace("&#39;", "'")
+                .replace("#1I", "#1")
+                .replace("#2I", "#2")
+                .split("<br>")
+            ),
+            booking_user=resv[8],
+            hours_deleted_before_play=resv[9],
+        )
 
 
 def main():
@@ -70,10 +152,8 @@ def main():
                 rsv.append(resv[1])
                 rsv.append(resv[0])
 
-                res_time = datetime.datetime.strptime(resv[1], "%m/%d/%y %I:%M %p")
-                play_time = datetime.datetime.strptime(
-                    " ".join([resv[2], resv[3]]), "%m/%d/%y %I:%M %p"
-                )
+                res_time = get_time(resv[1])
+                play_time = get_time(" ".join([resv[2], resv[3]]))
                 time_delta = play_time - res_time
                 # print(time_delta)
                 rsv.append(str(time_delta))
@@ -93,9 +173,9 @@ def main():
     possible_problem_rsvs = list()
 
     for item in reservations:
-        res_time = datetime.datetime.strptime(item[0], "%m/%d/%y %I:%M %p")
+        res_time = get_time(item[0])
         print(item)
-        play_time = datetime.datetime.strptime(item[3], "%m/%d/%y %I:%M %p")
+        play_time = get_time(item[3])
         time_delta = play_time - res_time
         print(time_delta)
         print(item[2])
@@ -104,16 +184,7 @@ def main():
         else:
             possible_problem_rsvs.append(item)
 
-    keyItems = [
-        "Reservation Creation Time",
-        "Reservation Deletion Time",
-        "Reservation Time Delta",
-        "Play Start Time",
-        "Court",
-        "Players/Machines",
-        "Booking User",
-        "Hours Deleted Before Play Time",
-    ]
+    keyItems = output_format()
 
     print("\nReservations created outside of a 24-hour play window:\n")
     jays_pretty_print(header=keyItems, data=problem_rsvs)
