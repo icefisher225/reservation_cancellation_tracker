@@ -22,24 +22,41 @@ class Entry:
         hours_deleted_before_play="",
         empty=False,
     ):
-        self.creation_time = creation_time
-        self.deletion_time = deletion_time
-        res_time = datetime.datetime.strptime(self.creation_time, "%m/%d/%y %I:%M %p")
-        play_time = datetime.datetime.strptime(self.deletion_time, "%m/%d/%y %I:%M %p")
-        self.time_delta = play_time - res_time
-        self.play_start_time = play_start_time
-        self.court = court
-        self.players = players
-        self.booking_user = booking_user
-        self.hours_deleted_before_play = hours_deleted_before_play
+        if empty == False:
+            self.creation_time = creation_time
+            self.deletion_time = deletion_time
+            res_time = datetime.datetime.strptime(
+                self.creation_time, "%m/%d/%y %I:%M %p"
+            )
+            play_time = datetime.datetime.strptime(
+                self.deletion_time, "%m/%d/%y %I:%M %p"
+            )
+            self.time_delta = play_time - res_time
+            self.play_start_time = play_start_time
+            self.court = court
+            self.players = players
+            self.booking_user = booking_user
+            self.hours_deleted_before_play = hours_deleted_before_play
         self.empty = empty
+
+    @property
+    def get_creation_time(self):
+        return self.creation_time
+
+    @property
+    def get_deletion_time(self):
+        return self.deletion_time
+
+    @property
+    def get_play_start_time(self):
+        return self.play_start_time
 
     def prettyprint(self):
         return [
-            self.creation_time,
-            self.deletion_time,
-            self.time_delta,
-            self.play_start_time,
+            str(self.creation_time),
+            str(self.deletion_time),
+            str(self.time_delta),
+            str(self.play_start_time),
             self.court,
             self.players,
             self.booking_user,
@@ -105,7 +122,7 @@ def parse_line(line):
                     # yes, this is cheating and will likely cause issues in the future.
                     # TODO: fix this by creating a proper genericized CSV parser
                     continue
-            resv.append()
+            resv.append(item)
         return Entry(
             creation_time=resv[1],
             deletion_time=resv[0],
@@ -126,7 +143,7 @@ def parse_line(line):
         )
 
 
-def new_main():
+def main():
     f = sys.argv[1]
     reservations = list()
     with open(f, "r") as file:
@@ -142,86 +159,10 @@ def new_main():
     possible_problem_rsvs = list()
 
     for item in reservations:
-        res_time = get_time(item[0])
-        play_time = get_time(item[3])
-        time_delta = play_time - res_time
-        if time_delta > day:
-            problem_rsvs.append(item)
+        if item.time_delta > day:
+            problem_rsvs.append(item.prettyprint())
         else:
-            possible_problem_rsvs.append(item)
-
-    keyItems = output_format()
-
-    print("\nReservations created outside of a 24-hour play window:\n")
-    pretty_print(header=keyItems, data=problem_rsvs)
-    print("\n\nReservations created inside a 24-hour play window:\n")
-    pretty_print(header=keyItems, data=possible_problem_rsvs)
-
-
-def old_main():
-    f = sys.argv[1]
-    reservations = list()
-    with open(f, "r") as file:
-        file.readline()
-        for line in file:
-            line = line.strip().replace('"', "").split(",")
-            if (
-                line[8] != "Indoor"
-                or line[1] != ""
-                or line[3] != ""
-                or line[16] == ""
-                or int(line[16]) > 24
-            ):
-                continue
-            else:
-                resv = list()
-                for item in line:
-                    if item == "":
-                        continue
-                    if item.isnumeric():
-                        if int(item) > 24:
-                            continue
-
-                    resv.append(
-                        ", ".join(
-                            item.replace("<i>", "")
-                            .replace("</i>", "")
-                            .replace("<hr>", ": ")
-                            .replace("&#39;", "'")
-                            .replace("#1I", "#1")
-                            .replace("#2I", "#2")
-                            .split("<br>")
-                        )
-                    )
-                rsv = list()
-                rsv.append(resv[1])
-                rsv.append(resv[0])
-
-                res_time = get_time(resv[1])
-                play_time = get_time(" ".join([resv[2], resv[3]]))
-                time_delta = play_time - res_time
-                # print(time_delta)
-                rsv.append(str(time_delta))
-                # time delta needs to go here
-                rsv.append(" ".join([resv[2], resv[3]]))
-                rsv.append(resv[6])
-                rsv.append(resv[7])
-                rsv.append(resv[8])
-                rsv.append(resv[9])
-                reservations.append(rsv)
-
-    day = datetime.timedelta(seconds=86400)
-    problem_rsvs = list()
-    possible_problem_rsvs = list()
-
-    for item in reservations:
-        res_time = get_time(item[0])
-        play_time = get_time(item[3])
-        time_delta = play_time - res_time
-        if time_delta > day:
-            problem_rsvs.append(item)
-        else:
-            possible_problem_rsvs.append(item)
+            possible_problem_rsvs.append(item.prettyprint())
 
     keys = Keys()
 
