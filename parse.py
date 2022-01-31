@@ -143,41 +143,16 @@ def parse_line(line):
         )
 
 
-def main():
-    f = sys.argv[1]
-    reservations = list()
-    with open(f, "r") as file:
-        # This is where a first line parser would come in...
-        key = file.readline()
-        for line in file:
-            entry = parse_line(line)
-            if entry.empty == False:
-                reservations.append(entry)
-
-    day = datetime.timedelta(seconds=86400)
-    problem_rsvs = list()
-    possible_problem_rsvs = list()
-
-    for item in reservations:
-        if item.time_delta > day:
-            problem_rsvs.append(item.prettyprint())
-        else:
-            possible_problem_rsvs.append(item.prettyprint())
-
-    keys = Keys()
-
-    print("\nReservations created outside of a 24-hour play window:\n")
-    pretty_print(header=keys.get_keys, data=problem_rsvs)
-    print("\n\nReservations created inside a 24-hour play window:\n")
-    pretty_print(header=keys.get_keys, data=possible_problem_rsvs)
-
-
 def pretty_print(
     *,
     header: list[str],
     data: list[list[str]],
     output: Callable[[str], Any] = print,
 ):
+
+    """
+    This function was authored by @TG_Techie
+    """
 
     """
     #Sample Code:
@@ -227,6 +202,35 @@ def pretty_print(
         ), f"all elements in line must be strings, line index {index} has a not string element in it"
 
         output(" | ".join(item.ljust(width) for width, item in zip(widths, line)))
+
+
+def main():
+    f = sys.argv[1]
+    reservations = list()
+    with open(f, "r") as file:
+        # This is where a first line parser would come in...
+        key = file.readline()
+        for line in file:
+            entry = parse_line(line)
+            if entry.empty == False:
+                reservations.append(entry)
+
+    day = datetime.timedelta(seconds=86400)
+    problem_rsvs = list()
+    possible_problem_rsvs = list()
+
+    for item in reservations:
+        if item.time_delta > day:
+            problem_rsvs.append(item.prettyprint())
+        else:
+            possible_problem_rsvs.append(item.prettyprint())
+
+    keys = Keys()
+
+    print("\nReservations created outside of a 24-hour play window:\n")
+    pretty_print(header=keys.get_keys, data=problem_rsvs)
+    print("\n\nReservations created inside a 24-hour play window:\n")
+    pretty_print(header=keys.get_keys, data=possible_problem_rsvs)
 
 
 # requested output:
