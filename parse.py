@@ -1,5 +1,7 @@
-from __future__ import annotations  # make typehints vanish at runtime
+from __future__ import annotations
+from ast import parse  # make typehints vanish at runtime
 import datetime, sys
+from pickle import NONE
 from typing import *
 from platformdirs import user_cache_dir
 
@@ -45,17 +47,28 @@ class Entry:
         ]
 
 
-def output_format():
-    return [
-        "Reservation Creation Time",
-        "Reservation Deletion Time",
-        "Reservation Time Delta",
-        "Play Start Time",
-        "Court",
-        "Players/Machines",
-        "Booking User",
-        "Hours Deleted Before Play Time",
-    ]
+class Keys:
+    def __init__(self, *, fmt=[]):
+        if fmt == []:
+            self._key_lst = [
+                "Reservation Creation Time",
+                "Reservation Deletion Time",
+                "Reservation Time Delta",
+                "Play Start Time",
+                "Court",
+                "Players/Machines",
+                "Booking User",
+                "Hours Deleted Before Play Time",
+            ]
+        else:
+            self._key_lst = list()
+            for item in fmt:
+                self._key_lst.append(item)
+
+    @property
+    def get_keys(self):
+        return self._key_lst
+
 
 def get_time(st):
     """
@@ -113,7 +126,39 @@ def parse_line(line):
         )
 
 
-def main():
+def new_main():
+    f = sys.argv[1]
+    reservations = list()
+    with open(f, "r") as file:
+        # This is where a first line parser would come in...
+        key = file.readline()
+        for line in file:
+            entry = parse_line(line)
+            if entry.empty == False:
+                reservations.append(entry)
+
+    day = datetime.timedelta(seconds=86400)
+    problem_rsvs = list()
+    possible_problem_rsvs = list()
+
+    for item in reservations:
+        res_time = get_time(item[0])
+        play_time = get_time(item[3])
+        time_delta = play_time - res_time
+        if time_delta > day:
+            problem_rsvs.append(item)
+        else:
+            possible_problem_rsvs.append(item)
+
+    keyItems = output_format()
+
+    print("\nReservations created outside of a 24-hour play window:\n")
+    pretty_print(header=keyItems, data=problem_rsvs)
+    print("\n\nReservations created inside a 24-hour play window:\n")
+    pretty_print(header=keyItems, data=possible_problem_rsvs)
+
+
+def old_main():
     f = sys.argv[1]
     reservations = list()
     with open(f, "r") as file:
@@ -165,34 +210,28 @@ def main():
                 rsv.append(resv[9])
                 reservations.append(rsv)
 
-    for item in reservations[0]:
-        print(type(item))
-
     day = datetime.timedelta(seconds=86400)
     problem_rsvs = list()
     possible_problem_rsvs = list()
 
     for item in reservations:
         res_time = get_time(item[0])
-        print(item)
         play_time = get_time(item[3])
         time_delta = play_time - res_time
-        print(time_delta)
-        print(item[2])
         if time_delta > day:
             problem_rsvs.append(item)
         else:
             possible_problem_rsvs.append(item)
 
-    keyItems = output_format()
+    keys = Keys()
 
     print("\nReservations created outside of a 24-hour play window:\n")
-    jays_pretty_print(header=keyItems, data=problem_rsvs)
+    pretty_print(header=keys.get_keys, data=problem_rsvs)
     print("\n\nReservations created inside a 24-hour play window:\n")
-    jays_pretty_print(header=keyItems, data=possible_problem_rsvs)
+    pretty_print(header=keys.get_keys, data=possible_problem_rsvs)
 
 
-def jays_pretty_print(
+def pretty_print(
     *,
     header: list[str],
     data: list[list[str]],
@@ -201,7 +240,7 @@ def jays_pretty_print(
 
     """
     #Sample Code:
-    # jays_pretty_print(
+    # pretty_print(
     #     header=["title", "author", "year"],
     #     data=[
     #         ["aasfasdfasdfadfasfdas", "bfdsf", "c"],
