@@ -106,7 +106,7 @@ def parse_line(line):
         or line[1] != ""
         or line[3] != ""
         or line[16] == ""
-        or int(line[16]) > 24
+        or int(line[16]) >= 24
     ):
         return Entry(empty=True)
     else:
@@ -117,11 +117,13 @@ def parse_line(line):
                 # TODO: Replace this entire chunk of code with one that parses the first line of the CSV and determines what needs to go where based on that
                 continue
             if item.isnumeric():
-                if int(item) > 24:
-                    # check if reservation was deleted more than 24 hours in advance at the same time as removing all the irrelevant numeric fields
-                    # yes, this is cheating and will likely cause issues in the future.
-                    # TODO: fix this by creating a proper genericized CSV parser
+                if len(item) > 2:
                     continue
+                # if int(item) > 24:
+                #     # check if reservation was deleted more than 24 hours in advance at the same time as removing all the irrelevant numeric fields
+                #     # yes, this is cheating and will likely cause issues in the future. (It's not actually checking the 25-hour thing, that's happening somewhere else)
+                #     # TODO: fix this by creating a proper genericized CSV parser (done?)
+                #     continue
             resv.append(item)
         return Entry(
             creation_time=resv[1],
@@ -151,10 +153,8 @@ def pretty_print(
 ):
 
     """
-    This function was authored by @TG_Techie
-    """
+    This function was authored by @TG_Techie, editied by @icefisher225
 
-    """
     #Sample Code:
     # pretty_print(
     #     header=["title", "author", "year"],
@@ -165,21 +165,22 @@ def pretty_print(
     # )
     """
 
-    assert isinstance(data, list)
-    assert len(data), "no items in data"
+    assert isinstance(data, list), f"data must be type list, got type {type(data)}"
+    assert len(data), "data cannot be empty"
 
     assert isinstance(
         data[0], list
-    ), f"data[0] is not a list, it is a {type(data[0])}, data must be a list[list[str]]"
-    assert len(data[0]), "no items in data's first item"
+    ), f"data[0] must be type list, got type {type(data[0])} \ndata must be type list[list[str]]"
+    assert len(data[0]), "data[0] cannot be empty"
 
     assert isinstance(
         data[0][0], str
-    ), f"data[0][0] is not a string, it is a {type(data[0][0])}, data must be a list[list[str]]"
+    ), f"data[0][0] must be type str, got type {type(data[0][0])} \ndata must be a list[list[str]]"
+    assert len(data[0][0]), "data[0][0] cannot be empty"
 
     assert len(header) == len(
         data[0]
-    ), f"header and data must have same length, header[{len(header)}] != data[{len(data[0])}]"
+    ), f"header and data must contain same number of items, header[{len(header)}] != data[{len(data[0])}]"
 
     # smoosh together all the data and header
     lines = [header] + data
