@@ -3,6 +3,7 @@ from ast import parse  # make typehints vanish at runtime
 import datetime, sys
 from pickle import NONE
 from typing import *
+from click import FileError
 from platformdirs import user_cache_dir
 
 
@@ -81,6 +82,14 @@ class Keys:
             self._key_lst = list()
             for item in fmt:
                 self._key_lst.append(item)
+
+    # def __iter__(self):
+    #     return
+    #     # return (i for i in self._key_lst)
+
+    # def __next__(self):
+    #     if self.num > self.end:
+    #         raise StopIteration
 
     @property
     def get_keys(self):
@@ -165,7 +174,9 @@ def pretty_print(
     # )
     """
 
-    assert isinstance(data, list), f"data must be type list, got type {type(data)}"
+    assert isinstance(
+        data, list
+    ), f"data must be type list, got type {type(data)} \ndata must be type list[list[str]]"
     assert len(data), "data cannot be empty"
 
     assert isinstance(
@@ -175,12 +186,12 @@ def pretty_print(
 
     assert isinstance(
         data[0][0], str
-    ), f"data[0][0] must be type str, got type {type(data[0][0])} \ndata must be a list[list[str]]"
+    ), f"data[0][0] must be type str, got type {type(data[0][0])} \ndata must be type list[list[str]]"
     assert len(data[0][0]), "data[0][0] cannot be empty"
 
     assert len(header) == len(
         data[0]
-    ), f"header and data must contain same number of items, header[{len(header)}] != data[{len(data[0])}]"
+    ), f"header and data[0] must contain same number of items, header[{len(header)}] != data[0][{len(data[0])}]"
 
     # smoosh together all the data and header
     lines = [header] + data
@@ -205,8 +216,45 @@ def pretty_print(
         output(" | ".join(item.ljust(width) for width, item in zip(widths, line)))
 
 
+def help(part=2):
+    if part == 1:
+        return f"\nRun this script either using:\n\n\t{sys.argv[0]} -f <file> \n\t\tor\n\t{sys.argv[0]} and follow the prompts.\n\n"
+
+    else:
+        return (
+            f"\nScript options: \n\n"
+            + f"\t-f <file>\tPass the file to be processed\n"
+            + f"\t--file <file>\n\n"
+            + f"\t-h\t\tPrint help\n"
+            + f"\t--help\n"
+        )
+
+
+def get_file():
+    try:
+        if sys.argv[1] == "help" or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+            print(f"{help(2)}")
+            exit()
+        if sys.argv[1] == "-f" or sys.argv[1] == "--file":
+            try:
+                return sys.argv[2]
+            except IndexError as IdxError:
+                print(f"\nIncorrect usage of {sys.argv[1]}")
+                print(f"{help(2)}")
+                exit()
+    except IndexError as IdxError:
+        try:
+            return input(f"Please drag and drop the file you'd like to process: ")
+        except Exception as Ex:
+            pass
+    except Exception as Ex:
+        pass
+    print(f"{help(1)}")
+    exit()
+
+
 def main():
-    f = sys.argv[1]
+    f = get_file()
     reservations = list()
     with open(f, "r") as file:
         # This is where a first line parser would come in...
