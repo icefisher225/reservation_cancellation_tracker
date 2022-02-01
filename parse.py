@@ -66,9 +66,12 @@ class Entry:
 
 
 class Keys:
-    def __init__(self, *, fmt=[]):
-        if fmt == []:
-            self._key_lst = [
+    def __init__(self, *, fmt=[], default=False, size=0):
+        self._keys = {}
+        self._size = size
+        self.__iter = 0
+        if default == True:
+            fmt = [
                 "Reservation Creation Time",
                 "Reservation Deletion Time",
                 "Reservation Time Delta",
@@ -78,22 +81,38 @@ class Keys:
                 "Booking User",
                 "Hours Deleted Before Play Time",
             ]
-        else:
-            self._key_lst = list()
+        if len(fmt) != 0:
             for item in fmt:
-                self._key_lst.append(item)
+                self._keys[str(self._size)] = item
+                self._size += 1
 
-    # def __iter__(self):
-    #     return
-    #     # return (i for i in self._key_lst)
-
-    # def __next__(self):
-    #     if self.num > self.end:
-    #         raise StopIteration
+    # @property
+    # def add_item(self, item):
+    #     self._keys[str(self._size)] = item
+    #     self._size += 1
 
     @property
     def get_keys(self):
-        return self._key_lst
+        return list((i for i in self._keys.values()))
+
+    def __len__(self):
+        return self._size
+
+    def __iter__(self):
+        return (i for i in self._keys)
+        # return self?
+        # TODO: I believe this is the method I need to implement to get this to work like a normal list...
+        pass
+
+    def __next__(self):
+        if self.__iter >= self._size:
+            raise StopIteration
+        else:
+            temp = self._keys.get(str(self.__iter))
+            self.__iter += 1
+            return temp
+            # TODO: This might also be a method I need to implement...
+            pass
 
 
 def get_time(st):
@@ -274,20 +293,12 @@ def main():
         else:
             possible_problem_rsvs.append(item.prettyprint())
 
-    keys = Keys()
+    keys = Keys(default=True)
 
     print("\nReservations created outside of a 24-hour play window:\n")
     pretty_print(header=keys.get_keys, data=problem_rsvs)
     print("\n\nReservations created inside a 24-hour play window:\n")
     pretty_print(header=keys.get_keys, data=possible_problem_rsvs)
-
-
-# requested output:
-# filter out anything cancelled 24 hours before or more
-# for reservations cancelled  with less than 24 hours:
-# show when made and when cancelled
-# extract hours between creation and cancellation
-# adjustable thresholds for everything
 
 
 if __name__ == "__main__":
