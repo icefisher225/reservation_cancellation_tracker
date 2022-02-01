@@ -159,8 +159,8 @@ def pretty_print(
     # pretty_print(
     #     header=["title", "author", "year"],
     #     data=[
-    #         ["aasfasdfasdfadfasfdas", "bfdsf", "c"],
-    #         ["dss", "edd", "f"],
+    #         ["Harry Potter and the Sorceror's Stone", "J.K. Rowling", "1997"],
+    #         ["A Tale of Two Cities", "Charles Dickins", "1859"],
     #     ],
     # )
     """
