@@ -3,9 +3,9 @@ from ast import parse  # make typehints vanish at runtime
 import datetime, sys
 from pickle import NONE
 from typing import *
-from click import FileError
-from platformdirs import user_cache_dir
 
+# from click import FileError
+# from platformdirs import user_cache_dir
 
 # for python 3.10 and up
 
@@ -99,12 +99,15 @@ class Keys:
         return self._size
 
     def __iter__(self):
+        # This makes something iterable
+        # returns an iterable o
         return (i for i in self._keys)
         # return self?
         # TODO: I believe this is the method I need to implement to get this to work like a normal list...
         pass
 
     def __next__(self):
+        # this is for an actual iterATOR
         if self.__iter >= self._size:
             raise StopIteration
         else:
@@ -181,7 +184,7 @@ def pretty_print(
 ):
 
     """
-    This function was authored by @TG_Techie, editied by @icefisher225
+    This function was authored by @TG_Techie, edited by @icefisher225
 
     #Sample Code:
     # pretty_print(
